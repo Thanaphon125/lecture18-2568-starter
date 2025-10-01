@@ -1,12 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
-
-import dotenv from "dotenv";
-
+  import dotenv from "dotenv";
 dotenv.config();
 
-
-import type {
+  import type {
   User,
   CustomRequest,
   UserPayload,
@@ -19,15 +16,15 @@ import { students, enrollments, reset_enrollments, courses } from "../db/db.js";
 import { authenticateToken } from "../middlewares/authenMiddleware.js";
 import { checkRoleAdmin } from "../middlewares/checkRoleAdminMiddleware.js";
 import { checkRoles } from "../middlewares/checkRoleMiddleware.js";
-
 import { zEnrollmentBody } from "../libs/zodValidators.js";
-
 import { success } from "zod";
 import { checkRoleStudent } from "../middlewares/checkRoleStudentMiddleware.js";
 
 const router = Router();
 
-  router.get(
+
+
+router.get(
   "/",
   authenticateToken,
   checkRoleAdmin,
@@ -47,7 +44,6 @@ const router = Router();
     }
   }
 );
-
 
 
 router.get(
@@ -92,6 +88,7 @@ router.get(
   }
 );
 
+
   router.post(
   "/reset",
   authenticateToken,
@@ -129,6 +126,7 @@ router.post(
           errors: result.error.issues[0]?.message,
         });
       }
+
 
       if (req.params.studentId !== req.user?.studentId) {
         return res.status(403).json({
@@ -198,21 +196,41 @@ router.delete(
         })
       }
 
-      const foundIndex = enrollments.findIndex(
+      const foundIndex_enrollment = enrollments.findIndex(
         (std) => std.studentId === body.studentId
       );
 
-      if (foundIndex === -1) {
+      if (foundIndex_enrollment === -1) {
         return res.status(404).json({
           success: false,
           message: "Enrollment does not exists",
         });
       }
+      enrollments.splice(foundIndex_enrollment, 1);
+
+            const foundIndex_student = students.findIndex(
+        (s) => s.studentId === req.params.studentId
+      );
+      if (foundIndex_student === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Student does not exists",
+        });
+      }
+      const foundIndex =
+        students[foundIndex_student]?.courses?.findIndex(
+          (c: string) => c === body.courseId
+        ) || -1;
+      if (foundIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Course does not exists",
+        });
+      }
 
 
+      students[foundIndex_student]?.courses?.splice(foundIndex, 1);
 
-      // delete found student from array
-      students.splice(foundIndex, 1);
       res.json({
         success: true,
         message: `Student ${req.params.studentId} && Course ${req.body.courseId} has been deleted successfully`,
