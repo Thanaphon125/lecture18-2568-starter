@@ -11,7 +11,7 @@ import studentRouter_v3 from "./routes/studentsRoutes_v3.js";
 import courseRouter_v2 from "./routes/coursesRouters_v2.js";
 
 const app = express();
-const port = 3000;
+const port = 4000;
 
 // body parser middleware
 app.use(express.json());
