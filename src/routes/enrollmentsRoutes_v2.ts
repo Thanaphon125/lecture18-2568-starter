@@ -1,7 +1,10 @@
 import { Router, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
+
 import dotenv from "dotenv";
+
 dotenv.config();
+
 
 import type {
   User,
@@ -16,13 +19,15 @@ import { students, enrollments, reset_enrollments, courses } from "../db/db.js";
 import { authenticateToken } from "../middlewares/authenMiddleware.js";
 import { checkRoleAdmin } from "../middlewares/checkRoleAdminMiddleware.js";
 import { checkRoles } from "../middlewares/checkRoleMiddleware.js";
+
 import { zEnrollmentBody } from "../libs/zodValidators.js";
+
 import { success } from "zod";
 import { checkRoleStudent } from "../middlewares/checkRoleStudentMiddleware.js";
 
 const router = Router();
 
-router.get(
+  router.get(
   "/",
   authenticateToken,
   checkRoleAdmin,
@@ -42,6 +47,8 @@ router.get(
     }
   }
 );
+
+
 
 router.get(
   "/:studentId",
@@ -85,7 +92,7 @@ router.get(
   }
 );
 
-router.post(
+  router.post(
   "/reset",
   authenticateToken,
   checkRoleAdmin,
@@ -148,6 +155,11 @@ router.post(
       };
       enrollments.push(newEnrollment);
 
+      const foundIndex = students.findIndex(
+        (std) => std.studentId === req.params.studentId
+      );
+      students[foundIndex]?.courses?.push(body.courseId);
+
       return res.status(201).json({
         success: true,
         message: `Student ${req.params.studentId} && ${req.body.courseId} has been added successfully`,
@@ -197,9 +209,10 @@ router.delete(
         });
       }
 
+
+
       // delete found student from array
       students.splice(foundIndex, 1);
-
       res.json({
         success: true,
         message: `Student ${req.params.studentId} && Course ${req.body.courseId} has been deleted successfully`,
